@@ -1,34 +1,39 @@
-import os  # <--- ADD THIS LINE
-import telebot
-import google.generativeai as genai
+import os
+import openai
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from dotenv import load_dotenv
 
-# This loads the variables from your .env file
+# Load environment variables
 load_dotenv()
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+openai.api_key = OPENAI_API_KEY
 
-# 1. Setup your API Keys
-api_key = os.getenv("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")
-# --- ADD IT HERE ---
-model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash',
-    system_instruction="You are a helpful coding assistant for a student in Kerala. Keep answers concise."
-)
-# -------------------
+# /start command
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Hi! I am your AI Telegram bot 🤖\nTalk to me in any language!"
+    )
 
-bot = telebot.TeleBot("8663212255:AAGrQTpEaSxn1zdqnMeKUNWSlIQzm3lN8Hk")
+# AI reply function
+async def ai_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_message = update.message.text
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # You can also use gpt-3.5-turbo
+            messages=[{"role": "user", "content": user_message}],
+            temperature=0.7
+        )
+        reply_text = response.choices[0].message.content
+        await update.message.reply_text(reply_text)
+    except Exception as e:
+        await update.message.reply_text("Oops! Something went wrong 🤔")
 
-# --- NEW STUDY COMMAND ---
-@bot.message_handler(commands=['study'])
-def ask_quiz(message):
-    prompt = "Give me one challenging multiple-choice question for Kerala SSLC level. Randomly pick between Physics, Chemistry, or Math."
-    response = model.generate_content(prompt)
-    bot.reply_to(message, response.text)
-# -------------------------
+# Build the bot
+app = ApplicationBuilder().token(BOT_TOKEN).build()
+app.add_handler(CommandHandler("start", start))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, ai_reply))
 
-@bot.message_handler(func=lambda message: True)
-def ai_chat(message):
-    # The model now knows its "personality" before it generates content
-    response = model.generate_content(message.text)
-    bot.reply_to(message, response.text)
-
-bot.infinity_polling()
+print("AI Telegram bot is running...")
+app.run_polling()
