@@ -19,7 +19,7 @@ It can chat in **any language**, auto-reply to messages, and run 24/7.
 ### **1️⃣ Local Usage**
 1. Clone the repository:
 ```bash
-git clone https://github.com/YOUR_USERNAME/personal-ai-bot.git
+git clone https://github.com/ansilcode-me/personal-ai-bot.git
 cd personal-ai-bot
 
 Install dependencies:
