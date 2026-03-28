@@ -1,0 +1,37 @@
+import os
+import logging
+from telegram import Update
+from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
+import google.generativeai as genai
+
+# 1. Setup AI (Gemini)
+genai.configure(api_key="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")model = genai.GenerativeModel('gemini-1.5-flash')
+
+# 2. Setup Logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+# 3. Define the AI response function
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
+    
+    # Show the bot is "typing"
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
+    
+    try:
+        # Get response from AI
+        response = model.generate_content(user_text)
+        await update.message.reply_text(response.text)
+    except Exception as e:
+        await update.message.reply_text("Sorry, I'm having trouble thinking right now.")
+        print(f"Error: {e}")
+
+if __name__ == '__main__':
+    # 4. Start the Telegram Bot
+    # Replace 'YOUR_TELEGRAM_TOKEN' with the token from BotFather
+    application = ApplicationBuilder().token('8663212255:AAGrQTpEaSxn1zdqnMeKUNWSlIQzm3lN8Hk').build()
+    
+    message_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message)
+    application.add_handler(message_handler)
+    
+    print("AI Assistant is online...")
+    application.run_polling()
