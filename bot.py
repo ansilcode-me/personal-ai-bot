@@ -1,5 +1,10 @@
-import google.generativeai as genai
+import os  # <--- ADD THIS LINE
 import telebot
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+# This loads the variables from your .env file
+load_dotenv()
 
 # 1. Setup your API Keys
 api_key = os.getenv("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")
